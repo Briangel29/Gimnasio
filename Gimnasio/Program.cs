@@ -42,14 +42,14 @@ namespace Gimnasio
 
                         if (!idCliente.Equals(0))
                         {
-                            string[] informacionCliente = new string[] { idCliente.ToString(), nombre, identidad, observacion };
+                            string[] informacionCliente = new string[] { idCliente.ToString(), nombre, identidad, observacion};
 
                             string registroCliente = string.Join("|", informacionCliente);
 
                             Escritura(cliente, registroCliente, 1);
 
                             Console.WriteLine("\n\nHan sido registrado los datos");
-                            Console.WriteLine("\nPrecione enter para volver al menu");
+                            Console.WriteLine("\nPrecione enter para volver al menu...");
                         }
                         else
                         {
@@ -71,32 +71,31 @@ namespace Gimnasio
                         {
                             IEnumerable<string>? listadoClientes = Lectura(cliente);
 
-                            if (listadoClientes.Any() || listadoClientes is not null)
+                            if (listadoClientes is not null)
                             {
+                                (bool, string?) informacionCliente = buscaCliente(listadoClientes, idCliente);
 
-                            }
+                                bool existeCliente = informacionCliente.Item1;
 
-                            (bool, string?) informacionCliente = buscaCliente(listadoClientes, idCliente);
-
-                            bool existeCliente = informacionCliente.Item1;
-
-                            if (existeCliente)
-                            {
-                                string[] partes = informacionCliente.Item2.Split('|');
-                                int id;
-
-                                if (!int.TryParse(partes[0], out id))
+                                if (existeCliente)
                                 {
-                                    Console.WriteLine($"Ocurrio un error, no se identifico el id del cliente, " +
-                                        $"favor verificar el registro de clientes en el txt");
+                                    string[] partes = informacionCliente.Item2!.Split('|');
+                                    int id;
+
+                                    if (!int.TryParse(partes[0], out id))
+                                    {
+                                        Console.WriteLine($"Ocurrio un error, no se identifico el id del cliente, " +
+                                            $"favor verificar el registro de clientes en el txt");
+                                    }
+
+                                    string nombre = partes[1];
+                                    string identificacion = partes[2];
+                                    string observacion = partes[3];
+
+                                    Console.WriteLine($"\n\nID: {id}\nNombre: {nombre}\nIdentificacion: {identificacion}\nObservacion: {observacion}");
+                                    Console.WriteLine("\n\nPresione enter para volver al menu....");
                                 }
-
-                                string nombre = partes[1];
-                                string identificacion = partes[2];
-                                string observacion = partes[3];
-
-                                Console.WriteLine($"\n\nID: {id}\nNombre: {nombre}\nIdentificacion: {identificacion}\nObservacion: {observacion}");
-                                Console.WriteLine("\n\nPresione enter para volver al menu....");
+                                else Console.WriteLine("El ID no pertenece a ningun cliente");
                             }
                             else
                             {
@@ -113,13 +112,17 @@ namespace Gimnasio
 
                         IEnumerable<string>? existeCliente = Lectura(cliente);
 
-                        if (existeCliente.Any() || existeCliente is not null)
+                        if (existeCliente is not null)
                         {
-                            string[,]listaClientes = buscarTodosLosClientes(existeCliente);
+                            string[,] listaClientes = buscarTodosLosClientes(existeCliente)!;
 
-                            foreach (var i in listaClientes)
+                            for (int i = 0; i < listaClientes.GetLength(0); i++)
                             {
-                                Console.WriteLine(i);
+                                for (int j = 0; j < listaClientes.GetLength(1); j++)
+                                {
+                                    Console.Write($"{listaClientes[i, j]} \t");
+                                }
+                                Console.WriteLine();
                             }
 
                             Console.WriteLine("\n\nPresione enter para volver al menu....");
@@ -201,8 +204,7 @@ namespace Gimnasio
             }
             else
             {
-
-                return new ;
+                return null;
             }
         }
         public static void Menu(int? opcion = null)
@@ -221,9 +223,9 @@ namespace Gimnasio
         }
         public static int GeneraId(string ruta)
         {
-            IEnumerable<string> lista = Lectura(ruta);
+            IEnumerable<string>? lista = Lectura(ruta);
 
-            if (lista.Any())
+            if (lista is not null)
             {
                 string[]? caracter = lista.Select(x => x.ToString().Split('|')).LastOrDefault();
 
@@ -238,34 +240,33 @@ namespace Gimnasio
         {
             string cliente = clientes?.FirstOrDefault(x => x.ToString().Split('|')[0].Equals(idCliente.ToString()))!;
 
-            if (cliente.Any()) return (true, cliente);
+            if (cliente is not null) return (true, cliente);
             else return (false, "No hay personas registradas hasta el momento");
         }
-        public static string[,] buscarTodosLosClientes(IEnumerable<string>? clientes)
+        public static string[,]? buscarTodosLosClientes(IEnumerable<string>? clientes)
         {
-            if (clientes.Any())
+            if (clientes is not null)
             {
-                string[] partes = clientes.Select(x => x.ToString().Split('|')).FirstOrDefault()!;
+                List<string> filas = clientes!.ToList();
 
-                if (partes.Any())
+                string[] columnas = filas.First().Split('|');
+
+                string[,] listadoCliente = new string[filas.Count(), columnas.Length];
+
+                for (int i = 0; i < listadoCliente.GetLength(0); i++)
                 {
-
-                    string[,] listaClientes = new string[clientes.Count(), partes.Count()];
-
-                    for (int i = 0; i < clientes.Count(); i++)
+                    string[] partes = filas[i].Split('|');
+                    for (int j = 0; j < columnas.Length; j++)
                     {
-                        for (int j = 0; j < partes.Length; j++)
-                        {
-                            listaClientes[i, j] = clientes.Select(x => x[i].ToString().Split('|')[j]).FirstOrDefault()!;
-                        }
+                        listadoCliente[i, j] = partes[j];
                     }
-                    return listaClientes;
                 }
-                else return new string[,] { };
+
+                return listadoCliente;
             }
             else
             {
-                return new string[,] { };
+                return null;
             }
         }
     }
