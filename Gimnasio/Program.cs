@@ -71,6 +71,11 @@ namespace Gimnasio
                         {
                             IEnumerable<string>? listadoClientes = Lectura(cliente);
 
+                            if (listadoClientes.Any() || listadoClientes is not null)
+                            {
+
+                            }
+
                             (bool, string?) informacionCliente = buscaCliente(listadoClientes, idCliente);
 
                             bool existeCliente = informacionCliente.Item1;
@@ -106,16 +111,18 @@ namespace Gimnasio
                         Console.WriteLine("\t***Registro de clientes del Gimnasio***\n\n");
                         Console.WriteLine("Lista de clientes: \n");
 
-                        IEnumerable<string>? listaClientes = Lectura(cliente);
+                        IEnumerable<string>? existeCliente = Lectura(cliente);
 
-                        string[,] datosClientes;
-
-                        if (listaClientes.Any() || listaClientes is not null)
+                        if (existeCliente.Any() || existeCliente is not null)
                         {
+                            string[,]listaClientes = buscarTodosLosClientes(existeCliente);
+
                             foreach (var i in listaClientes)
                             {
-                                
+                                Console.WriteLine(i);
                             }
+
+                            Console.WriteLine("\n\nPresione enter para volver al menu....");
                         }
                         else
                         {
@@ -194,7 +201,8 @@ namespace Gimnasio
             }
             else
             {
-                return new string[] { };
+
+                return new ;
             }
         }
         public static void Menu(int? opcion = null)
@@ -233,28 +241,32 @@ namespace Gimnasio
             if (cliente.Any()) return (true, cliente);
             else return (false, "No hay personas registradas hasta el momento");
         }
-        /*public static string[][] buscarTodosLosClientes(IEnumerable<string>? clientes)
+        public static string[,] buscarTodosLosClientes(IEnumerable<string>? clientes)
         {
             if (clientes.Any())
             {
-                string[] partes = clientes.Select(x=>x.ToString().Split('|')).FirstOrDefault()!;
+                string[] partes = clientes.Select(x => x.ToString().Split('|')).FirstOrDefault()!;
 
-                if (partes.Any()) {
+                if (partes.Any())
+                {
 
-                    string[][] listaClientes;
+                    string[,] listaClientes = new string[clientes.Count(), partes.Count()];
 
-                    for (int i = 0; i < partes.Count(); i++)
+                    for (int i = 0; i < clientes.Count(); i++)
                     {
-                        for (int j = 0; j < )
+                        for (int j = 0; j < partes.Length; j++)
                         {
-
+                            listaClientes[i, j] = clientes.Select(x => x[i].ToString().Split('|')[j]).FirstOrDefault()!;
                         }
                     }
+                    return listaClientes;
                 }
+                else return new string[,] { };
             }
             else
             {
-                return new string[][] { };
-        }*/
+                return new string[,] { };
+            }
+        }
     }
 }
