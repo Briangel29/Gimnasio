@@ -135,12 +135,47 @@ namespace Gimnasio
                     // 4. Buscar cliente (Nombre)
                     else if (opcion.Equals(4))
                     {
+                        Console.Clear();
+                        Console.WriteLine("\t***Registro de clientes del Gimnasio***\n\n");
+                        Console.Write("Digite el nombre del cliente: ");
 
+                        string nombreCliente = Console.ReadLine()!;
+
+                        IEnumerable<string>? listadoClientes = Lectura(cliente);
+
+                        if (listadoClientes is not null)
+                        {
+                            (bool, string?) existeCliente = buscaCliente(listadoClientes, nombreCliente);
+
+                            if (existeCliente.Item1)
+                            {
+                                string[] informacionCliente = existeCliente.Item2!.Split('|');
+
+                                Console.WriteLine($"{informacionCliente[0]}  -  {informacionCliente[1]}");
+                            }
+                            else Console.WriteLine(existeCliente.Item2);
+                        }
+                        else Console.WriteLine("No se encontro ningun cliente");
+
+                        Console.WriteLine("\n\nPresione enter para volver al menu....");
                     }
                     // 5. Dar de baja un cliente
                     else if (opcion.Equals(5))
                     {
+                        Console.Clear();
+                        Console.WriteLine("\t***Registro de clientes del Gimnasio***\n\n");
+                        Console.Write("Ingrese el Id del cliente: ");
 
+                        int idCliente = int.Parse(Console.ReadLine()!);
+
+                        if (!idCliente.Equals(0))
+                        {
+                            string mensaje = EliminarCliente(cliente, idCliente);
+
+                            Console.WriteLine(mensaje);
+                        }
+                        else Console.WriteLine("El valor ingresado debe ser numerico");
+                        Console.WriteLine("\n\nPresione enter para volver al menu....");
                     }
                     // 6. Modificar un cliente
                     else if (opcion.Equals(6))
@@ -236,9 +271,16 @@ namespace Gimnasio
             }
             else return 1;
         }
-        public static (bool, string?) buscaCliente(IEnumerable<string>? clientes, int idCliente)
+        public static (bool, string?) buscaCliente(IEnumerable<string>? clientes, int? idCliente)
         {
             string cliente = clientes?.FirstOrDefault(x => x.ToString().Split('|')[0].Equals(idCliente.ToString()))!;
+
+            if (cliente is not null) return (true, cliente);
+            else return (false, "No hay personas registradas hasta el momento");
+        }
+        public static (bool, string?) buscaCliente(IEnumerable<string>? clientes, string? nombreCliente)
+        {
+            string cliente = clientes?.FirstOrDefault(x => x.ToString().Split('|')[1].Equals(nombreCliente))!;
 
             if (cliente is not null) return (true, cliente);
             else return (false, "No hay personas registradas hasta el momento");
@@ -268,6 +310,18 @@ namespace Gimnasio
             {
                 return null;
             }
+        }
+        public static string EliminarCliente(string ruta, int id)
+        {
+            IEnumerable<string>? listaClientes = Lectura(ruta);
+
+            if (listaClientes is null) return $"No hay ningun cliente perteneciente al id {id}";
+
+            List<string> nuevaListaClientes = listaClientes.ToList();
+
+            Escritura(ruta, "", 0);
+
+            return "Fue eliminado el cliente";
         }
     }
 }
