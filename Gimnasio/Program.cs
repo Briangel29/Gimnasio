@@ -16,7 +16,7 @@ namespace Gimnasio
             do
             {
                 Menu();
-
+                EliminarLineasEnBlanco(cliente);
                 try
                 {
                     opcion = int.Parse(Console.ReadLine()!);
@@ -110,9 +110,9 @@ namespace Gimnasio
                         Console.WriteLine("\t***Registro de clientes del Gimnasio***\n\n");
                         Console.WriteLine("Lista de clientes: \n");
 
-                        IEnumerable<string>? existeCliente = Lectura(cliente);
+                        IEnumerable<string> existeCliente = Lectura(cliente)!;
 
-                        if (existeCliente is not null)
+                        if (existeCliente.Any())
                         {
                             string[,] listaClientes = buscarTodosLosClientes(existeCliente)!;
 
@@ -218,6 +218,27 @@ namespace Gimnasio
                 Console.WriteLine("El tipo de accion no es valido");
             }
         }
+        public static void Escritura(string ruta, List<string> mensaje)
+        {
+            if (File.Exists(ruta))
+            {
+                using (StreamWriter escritura = new StreamWriter(ruta, false, Encoding.UTF8))
+                {
+                    if (!mensaje.Any()) Console.WriteLine("No hay ningun registro ingresado");
+                    else
+                    {
+                        foreach (var perRegistro in mensaje)
+                        {
+                            escritura.WriteLine(perRegistro);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("El archivo no existe, o la ruta es incorrecta...");
+            }
+        }
         public static IEnumerable<string>? Lectura(string ruta)
         {
             if (File.Exists(ruta))
@@ -227,9 +248,13 @@ namespace Gimnasio
 
                     List<string>? mensajePorLinea = new List<string>();
 
-                    while (lectura.Peek() >= 0)
+                    string? linea;
+                    while ((linea = lectura.ReadLine()) != null)
                     {
-                        mensajePorLinea.Add(lectura.ReadLine()!);
+                        if (!string.IsNullOrWhiteSpace(linea)) // Filtra líneas vacías
+                        {
+                            mensajePorLinea.Add(linea);
+                        }
                     }
 
                     IEnumerable<string> mensaje = mensajePorLinea.ToList();
@@ -258,14 +283,16 @@ namespace Gimnasio
         }
         public static int GeneraId(string ruta)
         {
-            IEnumerable<string>? lista = Lectura(ruta);
+            IEnumerable<string> lista = Lectura(ruta)!;
 
-            if (lista is not null)
+            if (lista.Any())
             {
-                string[]? caracter = lista.Select(x => x.ToString().Split('|')).LastOrDefault();
+                string[] caracter = lista.Select(x => x.ToString().Split('|')).LastOrDefault()!;
 
                 int ultimoId;
-                int.TryParse(caracter[0], out ultimoId);
+                bool sePudoConvertir = int.TryParse(caracter[0], out ultimoId);
+
+                if (!sePudoConvertir) return 0;
 
                 return ultimoId + 1;
             }
@@ -285,9 +312,9 @@ namespace Gimnasio
             if (cliente is not null) return (true, cliente);
             else return (false, "No hay personas registradas hasta el momento");
         }
-        public static string[,]? buscarTodosLosClientes(IEnumerable<string>? clientes)
+        public static string[,]? buscarTodosLosClientes(IEnumerable<string> clientes)
         {
-            if (clientes is not null)
+            if (clientes.Any())
             {
                 List<string> filas = clientes!.ToList();
 
@@ -313,15 +340,39 @@ namespace Gimnasio
         }
         public static string EliminarCliente(string ruta, int id)
         {
-            IEnumerable<string>? listaClientes = Lectura(ruta);
+            IEnumerable<string> listaClientes = Lectura(ruta)!;
 
-            if (listaClientes is null) return $"No hay ningun cliente perteneciente al id {id}";
+            if (!listaClientes.Any()) return $"No hay ningun cliente perteneciente al id {id}";
 
-            List<string> nuevaListaClientes = listaClientes.ToList();
+            string clientes = "";
+            int idCliente = 0;
 
-            Escritura(ruta, "", 0);
+
+            foreach (var listaCliente in listaClientes)
+            {
+                bool idParse = int.TryParse(listaCliente.Split('|')[0], out idCliente);
+                if (idParse)
+                {
+                    if(!idCliente.Equals(id))
+                    {
+                        string cliente = listaCliente;
+                        clientes += $"{cliente}\n";
+                    }
+                }
+            }
+
+            Escritura(ruta, clientes, 0);
 
             return "Fue eliminado el cliente";
+        }
+        public static void EliminarLineasEnBlanco(string ruta)
+        {
+            List<string> registroSinLineas = Lectura(ruta)!.ToList();
+
+            if (registroSinLineas.Any())
+            {
+                Escritura(ruta, registroSinLineas);
+            }
         }
     }
 }
