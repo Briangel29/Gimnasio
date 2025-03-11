@@ -180,7 +180,52 @@ namespace Gimnasio
                     // 6. Modificar un cliente
                     else if (opcion.Equals(6))
                     {
+                        Console.Clear();
+                        Console.WriteLine("\t***Registro de clientes del Gimnasio***\n\n");
+                        Console.WriteLine("\tModificarCliente\n");
+                        Console.Write("Ingrese el Id del cliente: ");
 
+                        int idCliente = int.Parse(Console.ReadLine()!);
+
+                        if (!idCliente.Equals(0))
+                        {
+                            IEnumerable<string> listadoClientes = Lectura(cliente)!;
+
+                            if (listadoClientes.Any())
+                            {
+                                (bool, string?) registroCliente = buscaCliente(listadoClientes, idCliente);
+
+                                if (registroCliente.Item1)
+                                {
+                                    Console.WriteLine($"Datos: \n{registroCliente.Item2}");
+                                    Console.WriteLine("\nNuevos datos:\n");
+
+                                    string id = registroCliente.Item2!.Split('|')[0];
+
+                                    Console.Write("Digite el nombre: "); 
+                                    string nombre = Console.ReadLine()!;
+
+                                    Console.Write("Digite el numero de identidad: "); 
+                                    string identidad = Console.ReadLine()!;
+
+                                    Console.Write("Digite la observacion: ");
+                                    string? observacion = Console.ReadLine();
+
+                                    string[] clienteInformacion = new string[] { id, nombre, identidad, observacion };
+
+                                    string registroModificado = string.Join('|', clienteInformacion);
+
+                                    bool fueEditado = EditaCliente(cliente, registroModificado);
+
+                                    if (fueEditado) Console.WriteLine("\nHa sido modificado el cliente");
+                                    else Console.WriteLine("\nOcurrio un error modificando el cliente");
+                                }
+                                else Console.WriteLine("\nNo hay ningun cliente con ese identificador");
+                            }
+                            else Console.WriteLine("\nNo se encontro ningun cliente");
+                        }
+                        else Console.WriteLine("\nEl valor ingresado debe de ser numerico");
+                        Console.WriteLine("\n\nPresione enter para volver al menu....");
                     }
                 }
                 catch (NullReferenceException e)
@@ -191,6 +236,8 @@ namespace Gimnasio
                 Console.ReadLine();
                 Console.Clear();
             } while (!opcion.Equals(7));
+
+            Console.WriteLine("\n\nSaliendo del sistema...\n\n");
         }
         /*
             mensaje: la informacion escrita en el txt
@@ -373,6 +420,51 @@ namespace Gimnasio
             {
                 Escritura(ruta, registroSinLineas);
             }
+        }
+        public static bool EditaCliente(string ruta, string registro)
+        {
+            List<string> clientes = Lectura(ruta)!.ToList();
+
+            if (clientes.Any())
+            {
+                int linea = ObtenerLinea(ruta, registro);
+
+                if (linea.Equals(0))
+                {
+                    return false;
+                }
+                clientes[linea - 1] = registro;
+
+                Escritura(ruta, clientes);
+
+                return true;
+            }
+            return false;
+        }
+        public static int ObtenerLinea(string ruta, string cliente)
+        {
+            if (File.Exists(ruta))
+            {
+                using (StreamReader lectura = new StreamReader(ruta, Encoding.UTF8))
+                {
+                    string? linea;
+                    int iterador = 0, numeroLinea = 0;
+                    while ((linea = lectura.ReadLine()) != null)
+                    {
+                        iterador++;
+                        if (!string.IsNullOrEmpty(linea))
+                        {
+                            if (linea!.Split('|')[0].Contains(cliente.Split('|')[0]))
+                            {
+                                numeroLinea = iterador;
+                                break;
+                            }
+                        }
+                    }
+                    return numeroLinea;
+                }
+            }
+            else return 0;
         }
     }
 }
